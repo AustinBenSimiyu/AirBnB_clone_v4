@@ -1,80 +1,80 @@
-$('document').ready(function () {
-  const api = 'http://' + window.location.hostname;
-
-  $.get(api + ':5001:/api/v1/status/', function (response) {
-    if (response.status === 'OK') {
-      $('DIV#api_status').addClass('available');
+window.addEventListener('load', function () {
+  // task 3
+  $.ajax('http://0.0.0.0:5001/api/v1/status').done(function (data) {
+    if (data.status === 'OK') {
+      $('#api_status').addClass('available');
     } else {
-      $('DIV#api_status').removeClass('available');
+      $('#api_status').removeClass('available');
     }
   });
 
-  $.ajax({
-    url: api + ':5001/api/v1/places_search/',
-    type: 'POST',
-    data: '{}',
-    contentType: 'application/json',
-    dataType: 'json',
-    success: appendPlaces
-  });
-
-  let amenities = {};
-  $('INPUT[type="checkbox"]').change(function () {
-    if ($(this).is(':checked')) {
-      amenities[$(this).attr('data-id')] = $(this).attr('data-name');
-    } else {
-      delete amenities[$(this).attr('data-id')];
+  // task 2
+  const amenityIds = {};
+  $('input[type=checkbox]').click(function () {
+    if ($(this).prop('checked')) {
+      amenityIds[$(this).attr('data-id')] = $(this).attr('data-name');
+    } else if (!$(this).prop('checked')) {
+      delete amenityIds[$(this).attr('data-id')];
     }
-    if (Object.values(amenities).length === 0) {
-      $('.amenities H4').html('&nbsp;');
+    if (Object.keys(amenityIds).length === 0) {
+      $('div.amenities h4').html('&nbsp;');
     } else {
-      $('.amenities H4').text(Object.values(amenities).join(', '));
+      $('div.amenities h4').text(Object.values(amenityIds).join(', '));
     }
   });
 
-  $('BUTTON').click(function () {
+  // task 4
+  $('.filters button').click(function () {
     $.ajax({
-      url: api + ':5001/api/v1/places_search/',
       type: 'POST',
-      data: JSON.stringify({ 'amenities': Object.keys(amenities) }),
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
       contentType: 'application/json',
-      dataType: 'json',
-      success: appendPlaces
+      data: JSON.stringify({ amenities: Object.keys(amenityIds) })
+    }).done(function (data) {
+      $('section.places').empty();
+      $('section.places').append('<h1>Places</h1>');
+      for (const place of data) {
+        const template = `<article>
+        <div class="title">
+        <h2>${place.name}</h2>
+        <div class="price_by_night">
+      $${place.price_by_night}
+      </div>
+        </div>
+        <div class="information">
+        <div class="max_guest">
+        <i class="fa fa-users fa-3x" aria-hidden="true"></i>
+
+        <br />
+
+      ${place.max_guest} Guests
+
+      </div>
+        <div class="number_rooms">
+        <i class="fa fa-bed fa-3x" aria-hidden="true"></i>
+
+        <br />
+
+      ${place.number_rooms} Bedrooms
+      </div>
+        <div class="number_bathrooms">
+        <i class="fa fa-bath fa-3x" aria-hidden="true"></i>
+
+        <br />
+
+      ${place.number_bathrooms} Bathroom
+
+      </div>
+        </div>
+        <div class="description">
+
+      ${place.description}
+
+      </div>
+
+      </article> <!-- End 1 PLACE Article -->`;
+        $('section.places').append(template);
+      }
     });
   });
 });
-
-function appendPlaces(data) {
-  $('SECTION.places').empty();
-  $('SECTION.places').append(data.map(place => {
-    return `<ARTICLE>
-              <DIV class="title">
-                <H2>${place.name}</H2>
-                  <DIV class="price_by_night">
-                    ${place.price_by_night}
-                  </DIV>
-                </DIV>
-                <DIV class="information">
-                  <DIV class="max_guest">
-                    <I class="fa fa-users fa-3x" aria-hidden="true"></I>
-                    </BR>
-                    ${place.max_guest} Guests
-                  </DIV>
-                  <DIV class="number_rooms">
-                    <I class="fa fa-bed fa-3x" aria-hidden="true"></I>
-                    </BR>
-                    ${place.number_rooms} Bedrooms
-                  </DIV>
-                  <DIV class="number_bathrooms">
-                    <I class="fa fa-bath fa-3x" aria-hidden="true"></I>
-                    </BR>
-                    ${place.number_bathrooms} Bathrooms
-                  </DIV>
-                </DIV>
-                <DIV class="description">
-                  ${place.description}
-                </DIV>
-              </ARTICLE>`;
-  }));
-}
->>>>>>> fd2f38be33396c78b9fcc4e759680dd911dd7991
